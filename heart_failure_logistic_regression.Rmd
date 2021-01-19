@@ -1,0 +1,78 @@
+---
+title: "Simple logistic regression in R"
+output: html_notebook
+---
+
+The data was dowloaded from Kaggle https://www.kaggle.com/andrewmvd/heart-failure-clinical-data
+
+
+```{r}
+setwd("C:/Users/golovach/Desktop/Projects/4_Heart Failure Prediction")
+heart_failure_data<-read.table('heart_failure_clinical_records_dataset.csv', header=TRUE, sep = ',')
+head(heart_failure_data)
+```
+
+exporing the data
+```{r}
+summary(heart_failure_data)
+```
+splitting the data into train (75%) and test (25%) sets 
+```{r}
+smp_size <- floor(0.75 * nrow(heart_failure_data))
+```
+set the seed to make  partition reproducible
+```{r}
+set.seed(123)
+train_ind <- sample(seq_len(nrow(heart_failure_data)), size = smp_size)
+train <- heart_failure_data[train_ind, ]
+test <- heart_failure_data[-train_ind, ]
+test_args<- subset(test, select = -DEATH_EVENT )
+head(test)
+head(test_args)
+```
+modeling the logistic regression
+```{r}
+mylogit_all <- glm(DEATH_EVENT ~ ., data=train, family = "binomial"(link="logit"))
+summary(mylogit_all)
+```
+
+removing arguments with not significant p value (we would assume that p<0.05 is significant)
+```{r}
+mylogit_cut <- glm(DEATH_EVENT ~ age+ejection_fraction+serum_creatinine+time, data=train, family = "binomial"(link="logit"))
+summary(mylogit_cut)
+```
+Confident intervals
+```{r}
+confint(mylogit_cut)
+```
+predicting the data on test data set
+```{r}
+fit<-predict(mylogit_cut,test_args, type = "response")
+```
+calculation the cutoff (number between 0 and 1)
+```{r}
+library(InformationValue)
+optCutOff <- optimalCutoff(test$DEATH_EVENT, fit)[1] 
+optCutOff
+
+```
+missclassification error
+```{r}
+misClassError(test$DEATH_EVENT, fit, threshold = optCutOff)
+
+```
+sensitivity
+```{r}
+sensitivity(test$DEATH_EVENT, fit, threshold = optCutOff)
+
+```
+specificity
+```{r}
+specificity(test$DEATH_EVENT, fit, threshold = optCutOff)
+
+```
+confusion matrix
+```{r}
+confusionMatrix(test$DEATH_EVENT, fit, threshold = optCutOff)
+```
+
