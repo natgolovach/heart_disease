@@ -1,2 +1,2 @@
 # heart_disease
-simple logistic regression in R
+logistic regression in R
