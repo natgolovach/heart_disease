@@ -1,5 +1,5 @@
 ---
-title: "Simple logistic regression in R"
+title: "Logistic regression in R"
 output: html_notebook
 ---
 
